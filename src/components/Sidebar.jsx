@@ -1,63 +1,79 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, MessageSquare, Settings, Moon, Sun, Trash2 } from 'lucide-react'
-import { mockChats } from '../data/mockData'
+import { Plus, Settings, Moon, Sun, Trash2, AlertCircle } from 'lucide-react'
+import { conversationService } from '../services'
+import { adaptConversationList } from '../utils/adapters'
+import { useApi } from '../hooks/useApi'
+import { FIXED_USER_ID, STORAGE_KEYS } from '../utils/constants'
 
 function Sidebar() {
     const [chats, setChats] = useState([])
     const [darkMode, setDarkMode] = useState(false)
     const navigate = useNavigate()
+    const { loading, error, execute } = useApi()
 
-    // 从 localStorage 加载聊天记录，如果没有则使用 mock 数据
-    useEffect(() => {
-        const savedChats = localStorage.getItem('chats')
-        if (savedChats) {
-            const parsedChats = JSON.parse(savedChats)
-            // 如果本地存储的聊天记录为空，则使用 mock 数据
-            if (parsedChats.length === 0) {
-                setChats(mockChats)
-                localStorage.setItem('chats', JSON.stringify(mockChats))
-            } else {
-                setChats(parsedChats)
+    // 加载对话列表
+    const loadConversations = async () => {
+        try {
+            const response = await execute(
+                () => conversationService.getConversations(FIXED_USER_ID),
+                { loadingMessage: '正在加载对话列表...' }
+            );
+
+            const adaptedResponse = adaptConversationList(response);
+            if (adaptedResponse.success && adaptedResponse.data) {
+                setChats(adaptedResponse.data.conversations);
             }
-        } else {
-            // 首次加载时使用 mock 数据
-            setChats(mockChats)
-            localStorage.setItem('chats', JSON.stringify(mockChats))
+        } catch (err) {
+            // 如果 API 失败，尝试从本地存储加载
+            const savedChats = localStorage.getItem(STORAGE_KEYS.CHATS);
+            if (savedChats) {
+                setChats(JSON.parse(savedChats));
+            }
         }
+    };
 
-        const savedDarkMode = localStorage.getItem('darkMode')
+    // 初始化加载
+    useEffect(() => {
+        loadConversations();
+
+        const savedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
         if (savedDarkMode) {
-            setDarkMode(JSON.parse(savedDarkMode))
-            document.documentElement.classList.toggle('dark', JSON.parse(savedDarkMode))
+            setDarkMode(JSON.parse(savedDarkMode));
+            document.documentElement.classList.toggle('dark', JSON.parse(savedDarkMode));
         }
     }, [])
 
-    // 新建聊天
+    // 新建聊天（暂时禁用）
     const createNewChat = () => {
-        const newChat = {
-            id: Date.now().toString(),
-            title: '新对话',
-            messages: [],
-            createdAt: new Date().toISOString()
-        }
-        const updatedChats = [newChat, ...chats]
-        setChats(updatedChats)
-        localStorage.setItem('chats', JSON.stringify(updatedChats))
-        navigate(`/chat/${newChat.id}`)
+        alert('创建新对话功能暂时不可用，因为后端 API 不支持创建对话');
     }
 
     // 删除聊天
-    const deleteChat = (chatId, e) => {
+    const deleteChat = async (chatId, e) => {
         e.preventDefault()
         e.stopPropagation()
-        const updatedChats = chats.filter(chat => chat.id !== chatId)
-        setChats(updatedChats)
-        localStorage.setItem('chats', JSON.stringify(updatedChats))
 
-        // 如果删除的是当前聊天，跳转到首页
-        if (window.location.pathname.includes(chatId)) {
-            navigate('/')
+        try {
+            await execute(
+                () => conversationService.deleteConversation(chatId),
+                { loadingMessage: '正在删除对话...' }
+            );
+
+            // 删除成功后更新本地状态
+            const updatedChats = chats.filter(chat => chat.id !== chatId)
+            setChats(updatedChats)
+            localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(updatedChats))
+
+            // 如果删除的是当前聊天，跳转到首页
+            if (window.location.pathname.includes(chatId)) {
+                navigate('/')
+            }
+        } catch (err) {
+            // 即使 API 失败，也更新本地状态（乐观更新）
+            const updatedChats = chats.filter(chat => chat.id !== chatId)
+            setChats(updatedChats)
+            localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(updatedChats))
         }
     }
 
@@ -65,18 +81,10 @@ function Sidebar() {
     const toggleDarkMode = () => {
         const newDarkMode = !darkMode
         setDarkMode(newDarkMode)
-        localStorage.setItem('darkMode', JSON.stringify(newDarkMode))
+        localStorage.setItem(STORAGE_KEYS.DARK_MODE, JSON.stringify(newDarkMode))
         document.documentElement.classList.toggle('dark', newDarkMode)
     }
 
-    // 加载示例数据
-    const loadSampleData = () => {
-        if (confirm('确定要加载示例数据吗？这将替换当前的聊天记录。')) {
-            setChats(mockChats)
-            localStorage.setItem('chats', JSON.stringify(mockChats))
-            navigate('/')
-        }
-    }
 
     return (
         <div className="h-full bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -84,15 +92,33 @@ function Sidebar() {
             <div className="p-4">
                 <button
                     onClick={createNewChat}
-                    className="w-full btn-primary flex items-center justify-center gap-2"
+                    className="w-full btn-primary flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
+                    disabled={true}
                 >
                     <Plus size={20} />
-                    新建对话
+                    新建对话（不可用）
                 </button>
             </div>
 
             {/* 聊天列表 */}
             <div className="flex-1 overflow-y-auto px-4">
+                {loading && (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            正在加载对话列表...
+                        </div>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="flex items-center gap-2 p-3 mb-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+                        <div className="text-sm text-red-600 dark:text-red-400">
+                            {error}
+                        </div>
+                    </div>
+                )}
+
                 <div className="space-y-2">
                     {chats.map((chat) => (
                         <Link
@@ -119,14 +145,6 @@ function Sidebar() {
             {/* 底部设置 */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-2">
-                    {/* 加载示例数据 */}
-                    <button
-                        onClick={loadSampleData}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                    >
-                        <MessageSquare size={16} />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">加载示例数据</span>
-                    </button>
 
                     {/* 深色模式切换 */}
                     <button
@@ -138,6 +156,7 @@ function Sidebar() {
                             {darkMode ? '浅色模式' : '深色模式'}
                         </span>
                     </button>
+
 
                     {/* 设置页面链接 */}
                     <Link

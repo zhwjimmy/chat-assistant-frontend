@@ -13,7 +13,7 @@ function ChatWindow({ messages }) {
             setCopiedMessageId(messageId)
             setTimeout(() => setCopiedMessageId(null), 2000)
         } catch (err) {
-            console.error('复制失败:', err)
+            // 复制失败，静默处理
         }
     }
 

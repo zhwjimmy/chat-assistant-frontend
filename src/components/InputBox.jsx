@@ -14,9 +14,13 @@ function InputBox({ onSendMessage }) {
         }
     }, [input])
 
-    // 发送消息
+    // 发送消息（暂时禁用）
     const handleSend = async () => {
         if (!input.trim() || isLoading) return
+
+        // 暂时禁用发送功能
+        alert('发送消息功能暂时不可用，因为后端 API 不支持发送消息');
+        return;
 
         setIsLoading(true)
         await onSendMessage(input)
@@ -46,20 +50,17 @@ function InputBox({ onSendMessage }) {
                     value={input}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="输入您的问题... (Enter 发送，Shift+Enter 换行)"
+                    placeholder="发送消息功能暂时不可用..."
                     className="flex-1 resize-none border-none outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[24px] max-h-32"
                     rows={1}
-                    disabled={isLoading}
+                    disabled={true}
                 />
 
                 {/* 发送按钮 */}
                 <button
                     onClick={handleSend}
-                    disabled={!input.trim() || isLoading}
-                    className={`p-2 rounded-lg transition-colors duration-200 ${input.trim() && !isLoading
-                            ? 'bg-primary-600 hover:bg-primary-700 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        }`}
+                    disabled={true}
+                    className="p-2 rounded-lg transition-colors duration-200 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                 >
                     {isLoading ? (
                         <Square size={20} />
@@ -71,7 +72,7 @@ function InputBox({ onSendMessage }) {
 
             {/* 提示文字 */}
             <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-                {isLoading ? 'AI 正在思考中...' : '按 Enter 发送，Shift+Enter 换行'}
+                发送消息功能暂时不可用
             </div>
         </div>
     )
