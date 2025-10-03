@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { User, Bot, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
+import { formatTimeUTC8 } from '../utils/dateUtils'
 
 function ChatWindow({ messages }) {
     const [copiedMessageId, setCopiedMessageId] = useState(null)
@@ -17,14 +18,6 @@ function ChatWindow({ messages }) {
         }
     }
 
-    // 格式化时间
-    const formatTime = (timestamp) => {
-        const date = new Date(timestamp)
-        return date.toLocaleTimeString('zh-CN', {
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    }
 
     if (messages.length === 0) {
         return (
@@ -117,7 +110,7 @@ function ChatWindow({ messages }) {
                         {/* 消息时间戳和操作按钮 */}
                         <div className={`flex items-center gap-2 mt-1 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatTime(message.timestamp)}
+                                {formatTimeUTC8(message.timestamp)}
                             </span>
 
                             <button
