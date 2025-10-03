@@ -1,0 +1,93 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+.next/
+out/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.nuxt/
+.vuepress/dist/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Storybook
+storybook-static/
+
+# Large media files (uncomment if needed)
+# *.mp4
+# *.mov
+# *.avi
+# *.mkv
+# *.wmv
+# *.flv
+# *.webm
+
+# Large image files (uncomment if needed)
+# *.psd
+# *.ai
+# *.sketch
+
+# Documentation build outputs
+docs/build/
+docs/_build/
+
+# Test outputs
+test-results/
+playwright-report/
+test-results.xml
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
