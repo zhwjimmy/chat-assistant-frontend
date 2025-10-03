@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import ChatWindow from '../components/ChatWindow'
 import InputBox from '../components/InputBox'
+import { mockChats, simulateAIResponse } from '../data/mockData'
 
 function ChatPage() {
     const { chatId } = useParams()
@@ -9,7 +10,7 @@ function ChatPage() {
     const [chats, setChats] = useState([])
     const messagesEndRef = useRef(null)
 
-    // 从 localStorage 加载聊天记录
+    // 从 localStorage 加载聊天记录，如果没有则使用 mock 数据
     useEffect(() => {
         const savedChats = localStorage.getItem('chats')
         if (savedChats) {
@@ -28,8 +29,17 @@ function ChatPage() {
                 }
             }
         } else {
-            // 如果没有保存的聊天记录，创建新聊天
-            createNewChat()
+            // 如果没有保存的聊天记录，使用 mock 数据
+            setChats(mockChats)
+            localStorage.setItem('chats', JSON.stringify(mockChats))
+
+            if (chatId) {
+                const chat = mockChats.find(c => c.id === chatId)
+                setCurrentChat(chat || null)
+            } else {
+                // 默认显示第一个 mock 聊天
+                setCurrentChat(mockChats[0])
+            }
         }
     }, [chatId])
 
@@ -75,11 +85,11 @@ function ChatPage() {
         localStorage.setItem('chats', JSON.stringify(updatedChats))
 
         // 模拟 AI 回复
-        setTimeout(() => {
+        simulateAIResponse(content, 1000).then(aiResponse => {
             const aiMessage = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: generateAIResponse(content),
+                content: aiResponse,
                 timestamp: new Date().toISOString()
             }
 
@@ -96,20 +106,9 @@ function ChatPage() {
             )
             setChats(finalChats)
             localStorage.setItem('chats', JSON.stringify(finalChats))
-        }, 1000)
+        })
     }
 
-    // 模拟 AI 回复生成
-    const generateAIResponse = (userInput) => {
-        const responses = [
-            `我理解您的问题："${userInput}"。这是一个很有趣的话题，让我来为您详细解答。`,
-            `关于"${userInput}"，我可以为您提供以下信息和建议。`,
-            `感谢您的提问！针对"${userInput}"这个问题，我的回答是...`,
-            `这是一个很好的问题。关于"${userInput}"，我想分享一些想法。`,
-            `我明白您想了解"${userInput}"。让我为您详细解释一下。`
-        ]
-        return responses[Math.floor(Math.random() * responses.length)]
-    }
 
     // 滚动到底部
     const scrollToBottom = () => {

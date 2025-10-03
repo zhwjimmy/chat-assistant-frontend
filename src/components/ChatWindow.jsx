@@ -63,7 +63,7 @@ function ChatWindow({ messages }) {
                                 }`}
                         >
                             {message.role === 'assistant' ? (
-                                <div className="prose prose-sm max-w-none dark:prose-invert">
+                                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{
@@ -110,7 +110,7 @@ function ChatWindow({ messages }) {
                                     </ReactMarkdown>
                                 </div>
                             ) : (
-                                <div className="whitespace-pre-wrap">{message.content}</div>
+                                <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
                             )}
                         </div>
 
