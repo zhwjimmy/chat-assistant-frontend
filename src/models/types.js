@@ -62,3 +62,37 @@ export const ConversationListResponse = {
 export const MessageListResponse = {
     messages: 'Message[]'
 };
+
+// 搜索消息响应
+export const SearchMessage = {
+    id: 'string',
+    content: 'string',
+    role: 'string',
+    conversation_id: 'string',
+    created_at: 'string',
+    updated_at: 'string',
+    matched_fields: 'string[]',
+    source_content: 'string',
+    source_id: 'string'
+};
+
+// 搜索对话响应
+export const SearchConversation = {
+    id: 'string',
+    title: 'string',
+    user_id: 'string',
+    model: 'string',
+    provider: 'string',
+    created_at: 'string',
+    updated_at: 'string',
+    matched_fields: 'string[]',
+    messages: 'SearchMessage[]',
+    source_id: 'string',
+    source_title: 'string'
+};
+
+// 搜索响应
+export const SearchResponse = {
+    conversations: 'SearchConversation[]',
+    query: 'string'
+};

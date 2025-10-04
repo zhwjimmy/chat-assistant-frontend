@@ -1,4 +1,5 @@
 import { apiRequest, buildQueryParams } from './api.js';
+import { adaptSearchResponse } from '../utils/adapters.js';
 
 // 搜索对话服务
 export const searchService = {
@@ -26,7 +27,8 @@ export const searchService = {
                 method: 'GET'
             });
 
-            return response;
+            // 使用适配器转换响应数据
+            return adaptSearchResponse(response);
         } catch (error) {
             console.error('Search conversations error:', error);
             throw error;

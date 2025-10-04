@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Search as SearchIcon, Clock } from 'lucide-react'
+import { X, Search as SearchIcon, Clock, MessageSquare } from 'lucide-react'
 import { searchService } from '../services'
 import { FIXED_USER_ID } from '../utils/constants'
 import { formatTimeUTC8 } from '../utils/dateUtils'
+import { highlightWithMatchedFields, generateMessageSummary } from '../utils/highlightUtils'
 
 function SearchModal({ isOpen, onClose, onSelectConversation }) {
     const [query, setQuery] = useState('')
@@ -88,19 +89,23 @@ function SearchModal({ isOpen, onClose, onSelectConversation }) {
         onClose()
     }
 
-    // 高亮匹配文本
-    const highlightText = (text, query) => {
-        if (!query.trim()) return text
+    // 高亮匹配文本（使用新的高亮工具）
+    const highlightText = (text, matchedFields, query) => {
+        return highlightWithMatchedFields(text, matchedFields, query)
+    }
 
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-        const parts = text.split(regex)
+    // 获取首条消息摘要
+    const getFirstMessageSummary = (conversation) => {
+        if (!conversation.messages || conversation.messages.length === 0) {
+            return null
+        }
 
-        return parts.map((part, index) =>
-            regex.test(part) ? (
-                <mark key={index} className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">
-                    {part}
-                </mark>
-            ) : part
+        const firstMessage = conversation.messages[0]
+        return generateMessageSummary(
+            firstMessage.sourceContent || firstMessage.content,
+            firstMessage.matchedFields,
+            query,
+            120
         )
     }
 
@@ -169,36 +174,57 @@ function SearchModal({ isOpen, onClose, onSelectConversation }) {
 
                     {!loading && !error && query.trim() && results.length === 0 && (
                         <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                            <div className="text-lg font-medium mb-2">No results found</div>
-                            <div className="text-sm">
-                                建议检查关键词拼写或新建会话
+                            <SearchIcon size={48} className="mx-auto mb-4 opacity-30" />
+                            <div className="text-lg font-medium mb-2">未找到相关对话</div>
+                            <div className="text-sm space-y-1">
+                                <div>尝试使用不同的关键词</div>
+                                <div className="text-xs opacity-75">或检查拼写是否正确</div>
                             </div>
                         </div>
                     )}
 
                     {!loading && !error && results.length > 0 && (
                         <div ref={resultsRef} className="p-2">
+                            <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 mb-2">
+                                找到 {results.length} 个相关对话
+                            </div>
                             {results.map((conversation, index) => (
                                 <div
                                     key={conversation.id}
                                     onClick={() => handleSelectResult(conversation)}
-                                    className={`flex flex-col px-4 py-3 cursor-pointer rounded-md transition-colors ${index === selectedIndex
-                                        ? 'bg-indigo-50 dark:bg-indigo-900/20'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    className={`flex flex-col px-4 py-3 cursor-pointer rounded-md transition-all duration-200 border-l-2 ${
+                                        index === selectedIndex
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border-l-indigo-500'
+                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-l-transparent hover:border-l-gray-300 dark:hover:border-l-gray-600'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
                                             <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                                {highlightText(conversation.title || 'Untitled', query)}
+                                                {highlightText(conversation.title || 'Untitled', conversation.matchedFields, query)}
                                             </div>
+                                            
+                                            {/* 显示首条消息摘要 */}
+                                            {getFirstMessageSummary(conversation) && (
+                                                <div className="text-xs text-gray-600 dark:text-gray-300 mb-1 flex items-start">
+                                                    <MessageSquare size={10} className="mr-1 mt-0.5 flex-shrink-0" />
+                                                    <span className="line-clamp-2">
+                                                        {highlightText(
+                                                            getFirstMessageSummary(conversation),
+                                                            conversation.messages[0]?.matchedFields,
+                                                            query
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
                                             <div className="text-xs text-gray-500 dark:text-gray-400">
                                                 {conversation.provider} • {conversation.model}
                                             </div>
                                         </div>
                                         <div className="flex items-center text-xs text-gray-400 dark:text-gray-500 ml-2">
                                             <Clock size={12} className="mr-1" />
-                                            {formatTimeUTC8(conversation.updated_at || conversation.created_at)}
+                                            {formatTimeUTC8(conversation.updatedAt || conversation.createdAt)}
                                         </div>
                                     </div>
                                 </div>
@@ -210,8 +236,12 @@ function SearchModal({ isOpen, onClose, onSelectConversation }) {
                         <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                             <SearchIcon size={48} className="mx-auto mb-4 opacity-50" />
                             <div className="text-lg font-medium mb-2">搜索对话</div>
-                            <div className="text-sm">
-                                输入关键词搜索对话标题和内容
+                            <div className="text-sm space-y-2">
+                                <div>输入关键词搜索对话标题和内容</div>
+                                <div className="text-xs opacity-75 space-y-1">
+                                    <div>💡 支持多关键词搜索，用空格分隔</div>
+                                    <div>💡 可以搜索对话标题或消息内容</div>
+                                </div>
                             </div>
                         </div>
                     )}

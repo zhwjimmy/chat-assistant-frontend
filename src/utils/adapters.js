@@ -92,3 +92,48 @@ export const adaptUserResponse = (apiResponse) => {
     }
     return adapted;
 };
+
+// 适配搜索消息数据
+export const adaptSearchMessage = (apiSearchMessage) => {
+    return {
+        id: apiSearchMessage.id,
+        content: apiSearchMessage.content,
+        role: apiSearchMessage.role,
+        conversation_id: apiSearchMessage.conversation_id,
+        timestamp: apiSearchMessage.created_at,
+        createdAt: apiSearchMessage.created_at,
+        updatedAt: apiSearchMessage.updated_at,
+        matchedFields: apiSearchMessage.matched_fields || [],
+        sourceContent: apiSearchMessage.source_content || apiSearchMessage.content,
+        sourceId: apiSearchMessage.source_id
+    };
+};
+
+// 适配搜索对话数据
+export const adaptSearchConversation = (apiSearchConversation) => {
+    return {
+        id: apiSearchConversation.id,
+        title: apiSearchConversation.title || '未命名对话',
+        user_id: apiSearchConversation.user_id,
+        model: apiSearchConversation.model,
+        provider: apiSearchConversation.provider,
+        createdAt: apiSearchConversation.created_at,
+        updatedAt: apiSearchConversation.updated_at,
+        matchedFields: apiSearchConversation.matched_fields || [],
+        messages: (apiSearchConversation.messages || []).map(adaptSearchMessage),
+        sourceId: apiSearchConversation.source_id,
+        sourceTitle: apiSearchConversation.source_title
+    };
+};
+
+// 适配搜索响应
+export const adaptSearchResponse = (apiResponse) => {
+    const adapted = adaptPaginatedResponse(apiResponse);
+    if (adapted.data) {
+        adapted.data = {
+            conversations: (adapted.data.conversations || []).map(adaptSearchConversation),
+            query: adapted.data.query || ''
+        };
+    }
+    return adapted;
+};
