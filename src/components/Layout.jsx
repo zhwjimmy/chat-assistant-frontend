@@ -9,7 +9,7 @@ function Layout() {
     return (
         <div className="flex h-screen bg-white dark:bg-gray-900">
             {/* 侧边栏 */}
-            <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+            <div className={`${sidebarOpen ? 'w-72 md:w-80' : 'w-0'} transition-all duration-300 overflow-hidden`}>
                 <Sidebar />
             </div>
 
@@ -22,7 +22,7 @@ function Layout() {
                 />
 
                 {/* 页面内容 */}
-                <main className="flex-1 overflow-hidden">
+                <main className="flex-1 min-h-0">
                     <Outlet />
                 </main>
             </div>

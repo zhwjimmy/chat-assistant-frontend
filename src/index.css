@@ -27,18 +27,7 @@
         line-height: 1.6;
     }
 
-    .message-bubble {
-        @apply max-w-3xl px-4 py-3 rounded-2xl break-words;
-        line-height: 1.7;
-    }
-
-    .message-user {
-        @apply bg-primary-600 text-white ml-auto;
-    }
-
-    .message-ai {
-        @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 mr-auto;
-    }
+    /* 消息气泡样式已移至组件内联样式 */
 }
 
 /* 自定义滚动条样式 */
@@ -56,6 +45,23 @@
 
 ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* 虚拟滚动容器样式 */
+.react-window-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156 163 175) transparent;
+}
+
+/* 响应式设计优化 */
+@media (max-width: 768px) {
+    .sidebar-mobile {
+        @apply w-full;
+    }
+
+    .conversation-item-mobile {
+        @apply px-2 py-3;
+    }
 }
 
 /* Markdown 内容样式 */

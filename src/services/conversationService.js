@@ -3,7 +3,7 @@ import { apiRequest, buildQueryParams } from './api.js';
 // 对话相关 API 服务
 export const conversationService = {
     // 获取对话列表
-    getConversations: async (userId, page = 1, limit = 10) => {
+    getConversations: async (userId, page = 1, limit = 20) => {
         const params = buildQueryParams({ user_id: userId, page, limit });
         return apiRequest(`/conversations?${params}`);
     },

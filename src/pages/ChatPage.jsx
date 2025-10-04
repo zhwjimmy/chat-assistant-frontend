@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import ChatWindow from '../components/ChatWindow'
-import InputBox from '../components/InputBox'
 import { conversationService, messageService } from '../services'
 import { adaptConversationResponse, adaptMessageList } from '../utils/adapters'
 import { useApi } from '../hooks/useApi'
@@ -69,16 +68,6 @@ function ChatPage() {
         }
     }, [chatId])
 
-    // 创建新聊天（暂时禁用，因为后端不支持创建对话）
-    const createNewChat = () => {
-        // 创建新对话功能暂时不可用，因为后端 API 不支持创建对话
-    }
-
-    // 发送消息（暂时禁用，因为后端不支持发送消息）
-    const sendMessage = async (content) => {
-        // 发送消息功能暂时不可用，因为后端 API 不支持发送消息
-        alert('发送消息功能暂时不可用，因为后端 API 不支持发送消息');
-    }
 
 
     // 滚动到底部
@@ -89,6 +78,20 @@ function ChatPage() {
     useEffect(() => {
         scrollToBottom()
     }, [currentChat?.messages])
+
+    // 动态设置网页标题
+    useEffect(() => {
+        if (currentChat && currentChat.title) {
+            document.title = `${currentChat.title} - Chat Assistant`
+        } else {
+            document.title = 'Chat Assistant'
+        }
+
+        // 组件卸载时恢复默认标题
+        return () => {
+            document.title = 'Chat Assistant'
+        }
+    }, [currentChat])
 
     if (loading) {
         return (
@@ -135,14 +138,8 @@ function ChatPage() {
     return (
         <div className="flex flex-col h-full">
             {/* 聊天窗口 */}
-            <div className="flex-1 overflow-hidden">
-                <ChatWindow messages={currentChat.messages} />
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* 输入框 */}
-            <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-                <InputBox onSendMessage={sendMessage} />
+            <div className="flex-1 min-h-0">
+                <ChatWindow messages={currentChat.messages} messagesEndRef={messagesEndRef} />
             </div>
         </div>
     )

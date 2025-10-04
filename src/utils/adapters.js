@@ -4,7 +4,7 @@
 export const adaptConversation = (apiConversation) => {
     return {
         id: apiConversation.id,
-        title: apiConversation.title,
+        title: apiConversation.title || '未命名对话', // 处理空标题
         user_id: apiConversation.user_id,
         model: apiConversation.model,
         provider: apiConversation.provider,

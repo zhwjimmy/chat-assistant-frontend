@@ -1,42 +1,33 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Settings, Moon, Sun, Trash2, AlertCircle } from 'lucide-react'
-import { conversationService } from '../services'
-import { adaptConversationList } from '../utils/adapters'
-import { useApi } from '../hooks/useApi'
-import { FIXED_USER_ID, STORAGE_KEYS } from '../utils/constants'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Plus, Settings, Moon, Sun, AlertCircle, Search } from 'lucide-react'
+import { useLazyConversations } from '../hooks/useLazyConversations'
+import { STORAGE_KEYS } from '../utils/constants'
+import VirtualizedConversationList from './VirtualizedConversationList'
+import SearchModal from './SearchModal'
 
 function Sidebar() {
-    const [chats, setChats] = useState([])
     const [darkMode, setDarkMode] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
+    const [showSearchModal, setShowSearchModal] = useState(false)
     const navigate = useNavigate()
-    const { loading, error, execute } = useApi()
+    const location = useLocation()
 
-    // 加载对话列表
-    const loadConversations = async () => {
-        try {
-            const response = await execute(
-                () => conversationService.getConversations(FIXED_USER_ID),
-                { loadingMessage: '正在加载对话列表...' }
-            );
+    // 使用懒加载 Hook
+    const {
+        conversations: chats,
+        loading,
+        loadingMore,
+        error,
+        hasMore,
+        loadMore,
+        refresh,
+        deleteConversation
+    } = useLazyConversations()
 
-            const adaptedResponse = adaptConversationList(response);
-            if (adaptedResponse.success && adaptedResponse.data) {
-                setChats(adaptedResponse.data.conversations);
-            }
-        } catch (err) {
-            // 如果 API 失败，尝试从本地存储加载
-            const savedChats = localStorage.getItem(STORAGE_KEYS.CHATS);
-            if (savedChats) {
-                setChats(JSON.parse(savedChats));
-            }
-        }
-    };
-
-    // 初始化加载
+    // 初始化深色模式
     useEffect(() => {
-        loadConversations();
-
         const savedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
         if (savedDarkMode) {
             setDarkMode(JSON.parse(savedDarkMode));
@@ -44,38 +35,48 @@ function Sidebar() {
         }
     }, [])
 
-    // 新建聊天（暂时禁用）
+    // 过滤聊天列表
+    const filteredChats = useMemo(() => {
+        if (!searchQuery.trim()) return chats;
+        return chats.filter(chat =>
+            chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [chats, searchQuery]);
+
+    // 新建聊天
     const createNewChat = () => {
-        alert('创建新对话功能暂时不可用，因为后端 API 不支持创建对话');
+        navigate('/');
     }
 
-    // 删除聊天
-    const deleteChat = async (chatId, e) => {
+    // 显示删除确认
+    const showDeleteConfirmation = (chatId, e) => {
         e.preventDefault()
         e.stopPropagation()
+        setShowDeleteConfirm(chatId)
+    }
 
+    // 确认删除聊天
+    const confirmDeleteChat = async (chatId) => {
         try {
-            await execute(
-                () => conversationService.deleteConversation(chatId),
-                { loadingMessage: '正在删除对话...' }
-            );
-
-            // 删除成功后更新本地状态
-            const updatedChats = chats.filter(chat => chat.id !== chatId)
-            setChats(updatedChats)
-            localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(updatedChats))
+            // 使用懒加载 Hook 的删除方法
+            deleteConversation(chatId);
 
             // 如果删除的是当前聊天，跳转到首页
-            if (window.location.pathname.includes(chatId)) {
+            if (location.pathname.includes(chatId)) {
                 navigate('/')
             }
         } catch (err) {
-            // 即使 API 失败，也更新本地状态（乐观更新）
-            const updatedChats = chats.filter(chat => chat.id !== chatId)
-            setChats(updatedChats)
-            localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(updatedChats))
+            console.error('Error deleting conversation:', err);
+        } finally {
+            setShowDeleteConfirm(null)
         }
     }
+
+    // 取消删除
+    const cancelDelete = () => {
+        setShowDeleteConfirm(null)
+    }
+
 
     // 切换深色模式
     const toggleDarkMode = () => {
@@ -85,6 +86,21 @@ function Sidebar() {
         document.documentElement.classList.toggle('dark', newDarkMode)
     }
 
+    // 打开搜索模态框
+    const openSearchModal = () => {
+        setShowSearchModal(true)
+    }
+
+    // 关闭搜索模态框
+    const closeSearchModal = () => {
+        setShowSearchModal(false)
+    }
+
+    // 选择搜索结果
+    const handleSelectSearchResult = (conversation) => {
+        navigate(`/chat/${conversation.id}`)
+    }
+
 
     return (
         <div className="h-full bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -92,16 +108,26 @@ function Sidebar() {
             <div className="p-4">
                 <button
                     onClick={createNewChat}
-                    className="w-full btn-primary flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
-                    disabled={true}
+                    className="w-full btn-primary flex items-center justify-center gap-2"
                 >
                     <Plus size={20} />
-                    新建对话（不可用）
+                    新建对话
+                </button>
+            </div>
+
+            {/* 搜索按钮 */}
+            <div className="px-4 pb-4">
+                <button
+                    onClick={openSearchModal}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 border border-gray-200 dark:border-gray-600"
+                >
+                    <Search size={16} className="text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">搜索对话...</span>
                 </button>
             </div>
 
             {/* 聊天列表 */}
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-hidden">
                 {loading && (
                     <div className="flex items-center justify-center py-8">
                         <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -111,7 +137,7 @@ function Sidebar() {
                 )}
 
                 {error && (
-                    <div className="flex items-center gap-2 p-3 mb-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <div className="flex items-center gap-2 p-3 mb-2 bg-red-50 dark:bg-red-900/20 rounded-lg mx-4">
                         <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
                         <div className="text-sm text-red-600 dark:text-red-400">
                             {error}
@@ -119,33 +145,34 @@ function Sidebar() {
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    {chats.map((chat) => (
-                        <Link
-                            key={chat.id}
-                            to={`/chat/${chat.id}`}
-                            className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                        >
-                            <div className="min-w-0 flex-1">
-                                <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                                    {chat.title}
-                                </span>
+                {!loading && !error && (
+                    <div className="h-full">
+                        {filteredChats.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                {searchQuery ? '未找到匹配的对话' : '暂无对话记录'}
                             </div>
-                            <button
-                                onClick={(e) => deleteChat(chat.id, e)}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-all duration-200"
-                            >
-                                <Trash2 size={14} className="text-red-500" />
-                            </button>
-                        </Link>
-                    ))}
-                </div>
+                        ) : (
+                            <VirtualizedConversationList
+                                chats={filteredChats}
+                                onDeleteClick={showDeleteConfirmation}
+                                showDeleteConfirm={showDeleteConfirm}
+                                onConfirmDelete={confirmDeleteChat}
+                                onCancelDelete={cancelDelete}
+                                height={window.innerHeight - 200} // 动态高度
+                                loadingMore={loadingMore}
+                                hasMore={hasMore}
+                                onLoadMore={loadMore}
+                                error={error}
+                                onRetry={refresh}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* 底部设置 */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-2">
-
                     {/* 深色模式切换 */}
                     <button
                         onClick={toggleDarkMode}
@@ -157,7 +184,6 @@ function Sidebar() {
                         </span>
                     </button>
 
-
                     {/* 设置页面链接 */}
                     <Link
                         to="/settings"
@@ -168,6 +194,13 @@ function Sidebar() {
                     </Link>
                 </div>
             </div>
+
+            {/* 搜索模态框 */}
+            <SearchModal
+                isOpen={showSearchModal}
+                onClose={closeSearchModal}
+                onSelectConversation={handleSelectSearchResult}
+            />
         </div>
     )
 }
