@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Settings, Moon, Sun, AlertCircle, Search, List } from 'lucide-react'
+import { Settings, Moon, Sun, AlertCircle, Search, List } from 'lucide-react'
 import { useLazyConversations } from '../hooks/useLazyConversations'
 import { STORAGE_KEYS } from '../utils/constants'
 import VirtualizedConversationList from './VirtualizedConversationList'
@@ -43,10 +43,6 @@ function Sidebar() {
         );
     }, [chats, searchQuery]);
 
-    // 新建聊天
-    const createNewChat = () => {
-        navigate('/');
-    }
 
     // 显示删除确认
     const showDeleteConfirmation = (chatId, e) => {
@@ -104,17 +100,6 @@ function Sidebar() {
 
     return (
         <div className="h-full bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-            {/* 新建聊天按钮 */}
-            <div className="p-4">
-                <button
-                    onClick={createNewChat}
-                    className="w-full btn-primary flex items-center justify-center gap-2"
-                >
-                    <Plus size={20} />
-                    新建对话
-                </button>
-            </div>
-
             {/* 搜索按钮 */}
             <div className="px-4 pb-4">
                 <button

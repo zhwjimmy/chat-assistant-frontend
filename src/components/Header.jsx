@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react'
 
-function Header({ sidebarOpen, onToggleSidebar }) {
+function Header({ sidebarOpen, onToggleSidebar, title = "对话标题" }) {
     return (
         <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-4">
             <button
@@ -12,7 +12,7 @@ function Header({ sidebarOpen, onToggleSidebar }) {
 
             <div className="ml-4">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    聊天助手
+                    {title}
                 </h1>
             </div>
         </header>
