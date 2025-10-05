@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useConversationList } from '../hooks/useConversationList';
 import { formatDate } from '../utils/dateUtils';
-import { assignTagsToConversations, getTagStyle } from '../data/mockTags';
+import { getTagStyle } from '../utils/tagUtils';
 import TagSelector from '../components/TagSelector';
 import { conversationService } from '../services/conversationService';
 
@@ -43,10 +43,8 @@ function ConversationListPage() {
         updateFilters
     } = useConversationList();
 
-    // 为对话添加标签数据
-    const conversationsWithTags = useMemo(() => {
-        return assignTagsToConversations(conversations);
-    }, [conversations]);
+    // 直接使用API返回的对话数据（已包含标签信息）
+    const conversationsWithTags = conversations;
 
     // 打开标签选择器
     const handleEditTags = (conversationId, currentTags) => {

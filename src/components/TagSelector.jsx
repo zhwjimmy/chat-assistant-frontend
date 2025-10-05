@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Check, Plus } from 'lucide-react';
-import { getTagStyle } from '../data/mockTags';
+import { getTagStyle } from '../utils/tagUtils';
 import { tagService } from '../services/tagService';
 
 const TagSelector = ({
@@ -113,7 +113,7 @@ const TagSelector = ({
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             点击标签进行选择或取消选择
                         </p>
-                        
+
                         {/* 错误提示 */}
                         {error && (
                             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -138,8 +138,8 @@ const TagSelector = ({
                                             key={tag.id}
                                             onClick={() => toggleTag(tag)}
                                             className={`relative inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isSelected
-                                                    ? `${getTagStyle(tag.name)} ring-2 ring-blue-500 ring-opacity-50`
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                                ? `${getTagStyle(tag.name)} ring-2 ring-blue-500 ring-opacity-50`
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                                 }`}
                                         >
                                             {tag.name}
@@ -194,11 +194,10 @@ const TagSelector = ({
                     <button
                         onClick={handleSave}
                         disabled={loading}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-                            loading
-                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                : 'text-white bg-blue-600 hover:bg-blue-700'
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 ${loading
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'text-white bg-blue-600 hover:bg-blue-700'
+                            }`}
                     >
                         {loading ? (
                             <>
