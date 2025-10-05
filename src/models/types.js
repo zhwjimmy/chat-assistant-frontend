@@ -41,7 +41,8 @@ export const Conversation = {
     provider: 'string',
     source_id: 'string',
     created_at: 'string',
-    updated_at: 'string'
+    updated_at: 'string',
+    tags: 'Tag[]'
 };
 
 // 消息信息

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useConversationList } from '../hooks/useConversationList';
 import { formatDate } from '../utils/dateUtils';
+import { assignTagsToConversations, getTagStyle } from '../data/mockTags';
 
 function ConversationListPage() {
     const [showFilters, setShowFilters] = useState(false);
@@ -33,6 +34,11 @@ function ConversationListPage() {
         resetFilters,
         updateFilters
     } = useConversationList();
+
+    // 为对话添加标签数据
+    const conversationsWithTags = useMemo(() => {
+        return assignTagsToConversations(conversations);
+    }, [conversations]);
 
     // 处理搜索（包含筛选条件）
     const handleSearch = (e) => {
@@ -252,6 +258,9 @@ function ConversationListPage() {
                                             创建时间
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            标签
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             来源
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -263,14 +272,14 @@ function ConversationListPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                                    {conversations.length === 0 ? (
+                                    {conversationsWithTags.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                                 暂无对话记录
                                             </td>
                                         </tr>
                                     ) : (
-                                        conversations.map((conversation) => (
+                                        conversationsWithTags.map((conversation) => (
                                             <tr
                                                 key={conversation.id}
                                                 className="hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -282,6 +291,22 @@ function ConversationListPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                                     {formatDate(conversation.created_at)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {conversation.tags && conversation.tags.length > 0 ? (
+                                                            conversation.tags.map((tag) => (
+                                                                <span
+                                                                    key={tag.id}
+                                                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagStyle(tag.name)}`}
+                                                                >
+                                                                    {tag.name}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">-</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -318,7 +343,7 @@ function ConversationListPage() {
                         </div>
 
                         {/* 分页 */}
-                        {conversations.length > 0 && (
+                        {conversationsWithTags.length > 0 && (
                             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center justify-between">
                                     {/* 分页信息 */}
