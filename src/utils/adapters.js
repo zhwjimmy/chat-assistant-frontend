@@ -8,7 +8,10 @@ export const adaptConversation = (apiConversation) => {
         user_id: apiConversation.user_id,
         model: apiConversation.model,
         provider: apiConversation.provider,
-        createdAt: apiConversation.created_at, // 映射时间字段
+        source_id: apiConversation.source_id, // 添加 source_id 字段
+        created_at: apiConversation.created_at, // 保持原始时间格式用于表格显示
+        updated_at: apiConversation.updated_at,
+        createdAt: apiConversation.created_at, // 兼容性字段
         updatedAt: apiConversation.updated_at,
         messages: [] // 消息需要单独获取
     };
@@ -53,6 +56,8 @@ export const adaptConversationList = (apiResponse) => {
     const adapted = adaptPaginatedResponse(apiResponse);
     if (adapted.data && adapted.data.conversations) {
         adapted.data.conversations = adapted.data.conversations.map(adaptConversation);
+        // 确保分页信息在正确的位置
+        adapted.data.pagination = adapted.pagination;
     }
     return adapted;
 };
@@ -117,11 +122,14 @@ export const adaptSearchConversation = (apiSearchConversation) => {
         user_id: apiSearchConversation.user_id,
         model: apiSearchConversation.model,
         provider: apiSearchConversation.provider,
-        createdAt: apiSearchConversation.created_at,
+        source_id: apiSearchConversation.source_id, // 添加 source_id 字段
+        created_at: apiSearchConversation.created_at, // 保持原始时间格式用于表格显示
+        updated_at: apiSearchConversation.updated_at,
+        createdAt: apiSearchConversation.created_at, // 兼容性字段
         updatedAt: apiSearchConversation.updated_at,
         matchedFields: apiSearchConversation.matched_fields || [],
         messages: (apiSearchConversation.messages || []).map(adaptSearchMessage),
-        sourceId: apiSearchConversation.source_id,
+        sourceId: apiSearchConversation.source_id, // 保持原有字段名
         sourceTitle: apiSearchConversation.source_title
     };
 };
@@ -132,7 +140,9 @@ export const adaptSearchResponse = (apiResponse) => {
     if (adapted.data) {
         adapted.data = {
             conversations: (adapted.data.conversations || []).map(adaptSearchConversation),
-            query: adapted.data.query || ''
+            query: adapted.data.query || '',
+            // 确保分页信息在正确的位置
+            pagination: adapted.pagination
         };
     }
     return adapted;

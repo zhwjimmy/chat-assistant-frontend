@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Settings, Moon, Sun, AlertCircle, Search } from 'lucide-react'
+import { Plus, Settings, Moon, Sun, AlertCircle, Search, List } from 'lucide-react'
 import { useLazyConversations } from '../hooks/useLazyConversations'
 import { STORAGE_KEYS } from '../utils/constants'
 import VirtualizedConversationList from './VirtualizedConversationList'
@@ -183,6 +183,15 @@ function Sidebar() {
                             {darkMode ? '浅色模式' : '深色模式'}
                         </span>
                     </button>
+
+                    {/* 对话列表页面链接 */}
+                    <Link
+                        to="/conversations"
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                    >
+                        <List size={16} />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">对话列表</span>
+                    </Link>
 
                     {/* 设置页面链接 */}
                     <Link

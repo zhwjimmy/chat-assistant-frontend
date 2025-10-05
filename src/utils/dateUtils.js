@@ -70,3 +70,22 @@ export const formatRelativeTimeUTC8 = (timestamp) => {
         return formatTimeUTC8(timestamp)
     }
 }
+
+/**
+ * 格式化日期为 YYYY-MM-DD 格式
+ * @param {string|Date} timestamp - UTC时间戳或日期对象
+ * @returns {string} 格式化后的日期字符串，格式为"YYYY-MM-DD"
+ */
+export const formatDate = (timestamp) => {
+    const date = new Date(timestamp)
+
+    // 转换为UTC+8时间
+    const utc8Date = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+
+    // 格式化为"YYYY-MM-DD"
+    const year = utc8Date.getUTCFullYear()
+    const month = String(utc8Date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(utc8Date.getUTCDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+}

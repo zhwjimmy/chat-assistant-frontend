@@ -39,6 +39,7 @@ export const Conversation = {
     user_id: 'string',
     model: 'string',
     provider: 'string',
+    source_id: 'string',
     created_at: 'string',
     updated_at: 'string'
 };
@@ -53,8 +54,8 @@ export const Message = {
     updated_at: 'string'
 };
 
-// 对话列表响应
-export const ConversationListResponse = {
+// 对话列表响应（旧版本，已废弃）
+export const ConversationListResponseOld = {
     conversations: 'Conversation[]'
 };
 
@@ -95,4 +96,21 @@ export const SearchConversation = {
 export const SearchResponse = {
     conversations: 'SearchConversation[]',
     query: 'string'
+};
+
+// 对话列表查询参数
+export const ConversationListQuery = {
+    page: 'number',
+    limit: 'number',
+    search: 'string',
+    provider: 'string',
+    start_date: 'string',
+    end_date: 'string',
+    user_id: 'string'
+};
+
+// 对话列表响应
+export const ConversationListResponse = {
+    conversations: 'Conversation[]',
+    pagination: 'PaginationInfo'
 };
