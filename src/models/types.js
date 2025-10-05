@@ -114,3 +114,26 @@ export const ConversationListResponse = {
     conversations: 'Conversation[]',
     pagination: 'PaginationInfo'
 };
+
+// 标签信息
+export const Tag = {
+    id: 'string',
+    name: 'string',
+    created_at: 'string',
+    updated_at: 'string'
+};
+
+// 标签列表响应
+export const TagListResponse = {
+    tags: 'Tag[]'
+};
+
+// 创建标签请求
+export const CreateTagRequest = {
+    name: 'string'
+};
+
+// 更新标签请求
+export const UpdateTagRequest = {
+    name: 'string'
+};
