@@ -49,3 +49,6 @@ export const LOADING_MESSAGES = {
     DELETING_CONVERSATION: '正在删除对话...',
     DELETING_MESSAGE: '正在删除消息...'
 };
+
+// 标签样式
+export const TAG_STYLE = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';

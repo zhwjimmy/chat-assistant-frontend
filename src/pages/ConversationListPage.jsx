@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useConversationList } from '../hooks/useConversationList';
 import { formatDate } from '../utils/dateUtils';
-import { getTagStyle } from '../utils/tagUtils';
+import { TAG_STYLE } from '../utils/constants';
 import TagSelector from '../components/TagSelector';
 import { conversationService } from '../services/conversationService';
 
@@ -354,7 +354,7 @@ function ConversationListPage() {
                                                                 conversation.tags.map((tag) => (
                                                                     <span
                                                                         key={tag.id}
-                                                                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagStyle(tag.name)}`}
+                                                                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${TAG_STYLE}`}
                                                                     >
                                                                         {tag.name}
                                                                     </span>

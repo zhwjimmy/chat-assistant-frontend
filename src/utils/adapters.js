@@ -13,6 +13,7 @@ export const adaptConversation = (apiConversation) => {
         updated_at: apiConversation.updated_at,
         createdAt: apiConversation.created_at, // 兼容性字段
         updatedAt: apiConversation.updated_at,
+        tags: apiConversation.tags || [], // 添加标签字段
         messages: [] // 消息需要单独获取
     };
 };
@@ -127,6 +128,7 @@ export const adaptSearchConversation = (apiSearchConversation) => {
         updated_at: apiSearchConversation.updated_at,
         createdAt: apiSearchConversation.created_at, // 兼容性字段
         updatedAt: apiSearchConversation.updated_at,
+        tags: apiSearchConversation.tags || [], // 添加标签字段
         matchedFields: apiSearchConversation.matched_fields || [],
         messages: (apiSearchConversation.messages || []).map(adaptSearchMessage),
         sourceId: apiSearchConversation.source_id, // 保持原有字段名

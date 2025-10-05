@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Check, Plus } from 'lucide-react';
-import { getTagStyle } from '../utils/tagUtils';
+import { TAG_STYLE } from '../utils/constants';
 import { tagService } from '../services/tagService';
 
 const TagSelector = ({
@@ -138,7 +138,7 @@ const TagSelector = ({
                                             key={tag.id}
                                             onClick={() => toggleTag(tag)}
                                             className={`relative inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isSelected
-                                                ? `${getTagStyle(tag.name)} ring-2 ring-blue-500 ring-opacity-50`
+                                                ? `${TAG_STYLE} ring-2 ring-blue-500 ring-opacity-50`
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                                 }`}
                                         >
@@ -166,7 +166,7 @@ const TagSelector = ({
                                     {localSelectedTags.map((tag) => (
                                         <span
                                             key={tag.id}
-                                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${getTagStyle(tag.name)}`}
+                                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${TAG_STYLE}`}
                                         >
                                             {tag.name}
                                             <button
