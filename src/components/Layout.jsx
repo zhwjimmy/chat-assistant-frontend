@@ -5,11 +5,15 @@ import { useState } from 'react'
 function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(true)
 
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen)
+    }
+
     return (
         <div className="flex h-screen bg-white dark:bg-gray-900">
             {/* 侧边栏 */}
-            <div className={`${sidebarOpen ? 'w-72 md:w-80' : 'w-0'} transition-all duration-300 overflow-hidden`}>
-                <Sidebar />
+            <div className={`${sidebarOpen ? 'w-72 md:w-80' : 'w-16'} transition-all duration-300 overflow-hidden`}>
+                <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
             </div>
 
             {/* 主内容区域 */}
