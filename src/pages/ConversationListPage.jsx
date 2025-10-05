@@ -15,6 +15,7 @@ import { useConversationList } from '../hooks/useConversationList';
 import { formatDate } from '../utils/dateUtils';
 import { assignTagsToConversations, getTagStyle } from '../data/mockTags';
 import TagSelector from '../components/TagSelector';
+import { conversationService } from '../services/conversationService';
 
 function ConversationListPage() {
     const [showFilters, setShowFilters] = useState(false);
@@ -23,6 +24,8 @@ function ConversationListPage() {
     const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
     const [editingConversationId, setEditingConversationId] = useState(null);
     const [editingTags, setEditingTags] = useState([]);
+    const [tagUpdateLoading, setTagUpdateLoading] = useState(false);
+    const [tagUpdateError, setTagUpdateError] = useState(null);
 
     const {
         conversations,
@@ -53,13 +56,38 @@ function ConversationListPage() {
     };
 
     // 保存标签修改
-    const handleSaveTags = (conversationId, newTags) => {
-        // 这里应该调用API保存标签，目前只是更新本地状态
-        console.log(`保存对话 ${conversationId} 的标签:`, newTags);
-        // TODO: 调用API保存标签
-        setTagSelectorOpen(false);
-        setEditingConversationId(null);
-        setEditingTags([]);
+    const handleSaveTags = async (conversationId, newTags) => {
+        setTagUpdateLoading(true);
+        setTagUpdateError(null);
+
+        try {
+            // 转换标签格式为API要求的格式
+            const tagsForApi = newTags.map(tag => ({
+                id: tag.id,
+                name: tag.name
+            }));
+
+            const response = await conversationService.updateConversationTags(conversationId, tagsForApi);
+
+            if (response.success) {
+                // 更新成功后，重新获取对话列表以刷新数据
+                // 这里可以调用fetchConversations来刷新数据
+                console.log('标签更新成功:', response);
+                setTagSelectorOpen(false);
+                setEditingConversationId(null);
+                setEditingTags([]);
+
+                // 可以添加成功提示
+                // TODO: 添加成功提示组件
+            } else {
+                setTagUpdateError(response.error?.message || '更新标签失败');
+            }
+        } catch (error) {
+            console.error('更新标签时出错:', error);
+            setTagUpdateError(error.message || '网络错误，请稍后重试');
+        } finally {
+            setTagUpdateLoading(false);
+        }
     };
 
     // 关闭标签选择器
@@ -449,6 +477,8 @@ function ConversationListPage() {
                 selectedTags={editingTags}
                 onSave={handleSaveTags}
                 conversationId={editingConversationId}
+                loading={tagUpdateLoading}
+                error={tagUpdateError}
             />
         </div>
     );

@@ -26,6 +26,19 @@ export const conversationService = {
         return apiRequest(`/conversations/${conversationId}/messages?${params}`);
     },
 
+    // 更新对话的标签
+    updateConversationTags: async (conversationId, tags) => {
+        return apiRequest(`/conversations/${conversationId}/tags`, {
+            method: 'PUT',
+            body: JSON.stringify({ tags })
+        });
+    },
+
+    // 获取对话的标签
+    getConversationTags: async (conversationId) => {
+        return apiRequest(`/conversations/${conversationId}/tags`);
+    },
+
 
     // 获取可用的 provider 选项
     getProviderOptions: async () => {

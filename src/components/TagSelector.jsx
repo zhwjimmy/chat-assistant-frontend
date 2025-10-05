@@ -1,23 +1,49 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Check, Plus } from 'lucide-react';
-import { mockTags, getTagStyle } from '../data/mockTags';
+import { getTagStyle } from '../data/mockTags';
+import { tagService } from '../services/tagService';
 
-const TagSelector = ({ 
-    isOpen, 
-    onClose, 
-    selectedTags = [], 
-    onSave, 
-    conversationId 
+const TagSelector = ({
+    isOpen,
+    onClose,
+    selectedTags = [],
+    onSave,
+    conversationId,
+    loading = false,
+    error = null
 }) => {
     const [localSelectedTags, setLocalSelectedTags] = useState(selectedTags);
+    const [availableTags, setAvailableTags] = useState([]);
+    const [tagsLoading, setTagsLoading] = useState(false);
     const modalRef = useRef(null);
 
-    // 当组件打开时，同步选中的标签
+    // 当组件打开时，同步选中的标签并获取可用标签
     useEffect(() => {
         if (isOpen) {
             setLocalSelectedTags(selectedTags);
+            fetchAvailableTags();
         }
     }, [isOpen, selectedTags]);
+
+    // 获取可用标签列表
+    const fetchAvailableTags = async () => {
+        setTagsLoading(true);
+        try {
+            const response = await tagService.getTags();
+            if (response.success) {
+                setAvailableTags(response.data.tags || []);
+            } else {
+                console.error('获取标签列表失败:', response.error);
+                // 如果API失败，使用mock数据作为后备
+                setAvailableTags([]);
+            }
+        } catch (error) {
+            console.error('获取标签列表时出错:', error);
+            setAvailableTags([]);
+        } finally {
+            setTagsLoading(false);
+        }
+    };
 
     // 点击模态框外部关闭
     useEffect(() => {
@@ -64,7 +90,7 @@ const TagSelector = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div 
+            <div
                 ref={modalRef}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
             >
@@ -88,27 +114,46 @@ const TagSelector = ({
                             点击标签进行选择或取消选择
                         </p>
                         
+                        {/* 错误提示 */}
+                        {error && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
                         {/* 标签列表 */}
                         <div className="flex flex-wrap gap-2">
-                            {mockTags.map((tag) => {
-                                const isSelected = localSelectedTags.some(selectedTag => selectedTag.id === tag.id);
-                                return (
-                                    <button
-                                        key={tag.id}
-                                        onClick={() => toggleTag(tag)}
-                                        className={`relative inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                                            isSelected
-                                                ? `${getTagStyle(tag.name)} ring-2 ring-blue-500 ring-opacity-50`
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                                        }`}
-                                    >
-                                        {tag.name}
-                                        {isSelected && (
-                                            <Check size={14} className="text-current" />
-                                        )}
-                                    </button>
-                                );
-                            })}
+                            {tagsLoading ? (
+                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+                                    加载标签中...
+                                </div>
+                            ) : availableTags.length > 0 ? (
+                                availableTags.map((tag) => {
+                                    const isSelected = localSelectedTags.some(selectedTag => selectedTag.id === tag.id);
+                                    return (
+                                        <button
+                                            key={tag.id}
+                                            onClick={() => toggleTag(tag)}
+                                            className={`relative inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isSelected
+                                                    ? `${getTagStyle(tag.name)} ring-2 ring-blue-500 ring-opacity-50`
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                                }`}
+                                        >
+                                            {tag.name}
+                                            {isSelected && (
+                                                <Check size={14} className="text-current" />
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            ) : (
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    暂无可用标签
+                                </div>
+                            )}
                         </div>
 
                         {/* 当前选中标签预览 */}
@@ -148,10 +193,24 @@ const TagSelector = ({
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                        disabled={loading}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+                            loading
+                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                : 'text-white bg-blue-600 hover:bg-blue-700'
+                        }`}
                     >
-                        <Check size={16} />
-                        保存
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                保存中...
+                            </>
+                        ) : (
+                            <>
+                                <Check size={16} />
+                                保存
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
