@@ -17,6 +17,7 @@ export const useConversationList = () => {
     const [filters, setFilters] = useState({
         search: '',
         provider: '',
+        tag_id: '',
         start_date: '',
         end_date: ''
     });
@@ -30,8 +31,15 @@ export const useConversationList = () => {
         try {
             let response;
 
-            // 如果有搜索条件，使用搜索接口
-            if (queryParams.search && queryParams.search.trim()) {
+            // 检查是否有任何搜索条件
+            const hasSearchConditions = queryParams.search?.trim() ||
+                queryParams.provider ||
+                queryParams.tag_id ||
+                queryParams.start_date ||
+                queryParams.end_date;
+
+            // 如果有任何搜索条件，使用搜索接口
+            if (hasSearchConditions) {
                 response = await searchService.searchConversations(
                     queryParams.search || '', // 如果没有搜索关键词，传递空字符串
                     FIXED_USER_ID,
@@ -39,6 +47,7 @@ export const useConversationList = () => {
                     queryParams.limit || pagination.limit,
                     {
                         provider: queryParams.provider,
+                        tag_id: queryParams.tag_id,
                         start_date: queryParams.start_date,
                         end_date: queryParams.end_date
                     }
@@ -124,6 +133,7 @@ export const useConversationList = () => {
         setFilters({
             search: '',
             provider: '',
+            tag_id: '',
             start_date: '',
             end_date: ''
         });

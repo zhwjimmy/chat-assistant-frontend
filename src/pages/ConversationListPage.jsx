@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
     Search,
     Filter,
@@ -16,11 +16,15 @@ import { formatDate } from '../utils/dateUtils';
 import { TAG_STYLE } from '../utils/constants';
 import TagSelector from '../components/TagSelector';
 import { conversationService } from '../services/conversationService';
+import { tagService } from '../services/tagService';
 
 function ConversationListPage() {
     const [showFilters, setShowFilters] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [selectedTagId, setSelectedTagId] = useState('');
+    const [availableTags, setAvailableTags] = useState([]);
+    const [tagsLoading, setTagsLoading] = useState(false);
     const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
     const [editingConversationId, setEditingConversationId] = useState(null);
     const [editingTags, setEditingTags] = useState([]);
@@ -45,6 +49,29 @@ function ConversationListPage() {
 
     // 直接使用API返回的对话数据（已包含标签信息）
     const conversationsWithTags = conversations;
+
+    // 获取可用标签列表
+    useEffect(() => {
+        const fetchAvailableTags = async () => {
+            setTagsLoading(true);
+            try {
+                const response = await tagService.getTags();
+                if (response.success) {
+                    setAvailableTags(response.data.tags || []);
+                } else {
+                    console.error('获取标签列表失败:', response.error);
+                    setAvailableTags([]);
+                }
+            } catch (error) {
+                console.error('获取标签列表时出错:', error);
+                setAvailableTags([]);
+            } finally {
+                setTagsLoading(false);
+            }
+        };
+
+        fetchAvailableTags();
+    }, []);
 
     // 打开标签选择器
     const handleEditTags = (conversationId, currentTags) => {
@@ -95,6 +122,15 @@ function ConversationListPage() {
         setEditingTags([]);
     };
 
+    // 检查是否有任何搜索条件
+    const hasSearchConditions = useMemo(() => {
+        return searchInput.trim() ||
+            selectedTagId ||
+            filters.provider ||
+            dateRange.start ||
+            dateRange.end;
+    }, [searchInput, selectedTagId, filters.provider, dateRange.start, dateRange.end]);
+
     // 处理搜索（包含筛选条件）
     const handleSearch = (e) => {
         e.preventDefault();
@@ -102,6 +138,7 @@ function ConversationListPage() {
         updateFilters({
             search: searchInput,
             provider: filters.provider,
+            tag_id: selectedTagId,
             start_date: dateRange.start,
             end_date: dateRange.end
         });
@@ -118,6 +155,7 @@ function ConversationListPage() {
     const handleResetFilters = () => {
         setSearchInput('');
         setDateRange({ start: '', end: '' });
+        setSelectedTagId('');
         resetFilters();
     };
 
@@ -207,7 +245,27 @@ function ConversationListPage() {
 
                     {/* 筛选条件 */}
                     {showFilters && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            {/* 标签筛选 */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    标签
+                                </label>
+                                <select
+                                    value={selectedTagId}
+                                    onChange={(e) => setSelectedTagId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    disabled={tagsLoading}
+                                >
+                                    <option value="">全部标签</option>
+                                    {availableTags.map((tag) => (
+                                        <option key={tag.id} value={tag.id}>
+                                            {tag.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             {/* Provider 筛选 */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -258,8 +316,8 @@ function ConversationListPage() {
                     <div className="flex gap-3">
                         <button
                             type="submit"
-                            disabled={!searchInput.trim()}
-                            className={`px-6 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${searchInput.trim()
+                            disabled={!hasSearchConditions}
+                            className={`px-6 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${hasSearchConditions
                                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
                                 }`}
