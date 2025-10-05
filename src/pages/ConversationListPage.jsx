@@ -8,16 +8,21 @@ import {
     ChevronRight,
     RotateCcw,
     AlertCircle,
-    Loader2
+    Loader2,
+    Edit3
 } from 'lucide-react';
 import { useConversationList } from '../hooks/useConversationList';
 import { formatDate } from '../utils/dateUtils';
 import { assignTagsToConversations, getTagStyle } from '../data/mockTags';
+import TagSelector from '../components/TagSelector';
 
 function ConversationListPage() {
     const [showFilters, setShowFilters] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
+    const [editingConversationId, setEditingConversationId] = useState(null);
+    const [editingTags, setEditingTags] = useState([]);
 
     const {
         conversations,
@@ -39,6 +44,30 @@ function ConversationListPage() {
     const conversationsWithTags = useMemo(() => {
         return assignTagsToConversations(conversations);
     }, [conversations]);
+
+    // 打开标签选择器
+    const handleEditTags = (conversationId, currentTags) => {
+        setEditingConversationId(conversationId);
+        setEditingTags(currentTags || []);
+        setTagSelectorOpen(true);
+    };
+
+    // 保存标签修改
+    const handleSaveTags = (conversationId, newTags) => {
+        // 这里应该调用API保存标签，目前只是更新本地状态
+        console.log(`保存对话 ${conversationId} 的标签:`, newTags);
+        // TODO: 调用API保存标签
+        setTagSelectorOpen(false);
+        setEditingConversationId(null);
+        setEditingTags([]);
+    };
+
+    // 关闭标签选择器
+    const handleCloseTagSelector = () => {
+        setTagSelectorOpen(false);
+        setEditingConversationId(null);
+        setEditingTags([]);
+    };
 
     // 处理搜索（包含筛选条件）
     const handleSearch = (e) => {
@@ -293,19 +322,28 @@ function ConversationListPage() {
                                                     {formatDate(conversation.created_at)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {conversation.tags && conversation.tags.length > 0 ? (
-                                                            conversation.tags.map((tag) => (
-                                                                <span
-                                                                    key={tag.id}
-                                                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagStyle(tag.name)}`}
-                                                                >
-                                                                    {tag.name}
-                                                                </span>
-                                                            ))
-                                                        ) : (
-                                                            <span className="text-xs text-gray-400">-</span>
-                                                        )}
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {conversation.tags && conversation.tags.length > 0 ? (
+                                                                conversation.tags.map((tag) => (
+                                                                    <span
+                                                                        key={tag.id}
+                                                                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagStyle(tag.name)}`}
+                                                                    >
+                                                                        {tag.name}
+                                                                    </span>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-xs text-gray-400">-</span>
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleEditTags(conversation.id, conversation.tags)}
+                                                            className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 p-1"
+                                                            title="编辑标签"
+                                                        >
+                                                            <Edit3 size={14} />
+                                                        </button>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -403,6 +441,15 @@ function ConversationListPage() {
                     </div>
                 )}
             </div>
+
+            {/* 标签选择器 */}
+            <TagSelector
+                isOpen={tagSelectorOpen}
+                onClose={handleCloseTagSelector}
+                selectedTags={editingTags}
+                onSave={handleSaveTags}
+                conversationId={editingConversationId}
+            />
         </div>
     );
 }
