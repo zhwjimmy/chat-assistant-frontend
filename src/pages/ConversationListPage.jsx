@@ -165,9 +165,22 @@ function ConversationListPage() {
     };
 
     // 跳转到原始内容（新tab页打开）
-    const handleViewOriginalContent = (sourceId) => {
+    const handleViewOriginalContent = (sourceId, provider) => {
         if (sourceId) {
-            window.open(`https://claude.ai/chat/${sourceId}`, '_blank');
+            let url;
+            switch (provider?.toLowerCase()) {
+                case 'grok':
+                    url = `https://grok.com/c/${sourceId}`;
+                    break;
+                case 'chatgpt':
+                    url = `https://chatgpt.com/c/${sourceId}`;
+                    break;
+                case 'claude':
+                default:
+                    url = `https://claude.ai/chat/${sourceId}`;
+                    break;
+            }
+            window.open(url, '_blank');
         }
     };
 
@@ -438,7 +451,7 @@ function ConversationListPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     {conversation.source_id ? (
                                                         <button
-                                                            onClick={() => handleViewOriginalContent(conversation.source_id)}
+                                                            onClick={() => handleViewOriginalContent(conversation.source_id, conversation.provider)}
                                                             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-1"
                                                         >
                                                             <ExternalLink size={16} />
